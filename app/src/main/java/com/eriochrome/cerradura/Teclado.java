@@ -6,74 +6,56 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class Teclado extends AppCompatActivity {
+import static com.eriochrome.cerradura.R.drawable.fondo_correcto;
+
+public class Teclado extends AppCompatActivity implements Button.OnClickListener{
 
     private Button b0, b1, b2, b3, b4, b5, b6, b7, b8, b9;
     private Button buttonOK, buttonDel;
-    TextView codigoDesbloqueo;
+    TextView codigoDesbloqueoTextView;
 
-    private Button.OnClickListener clickListener = new Button.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            int id = view.getId();
-            switch (id) {
-                case R.id.button0:
-                    agregarACodigoDeDesbloqueo("0");
-                    break;
-                case R.id.button1:
-                    agregarACodigoDeDesbloqueo("1");
-                    break;
-                case R.id.button2:
-                    agregarACodigoDeDesbloqueo("2");
-                    break;
-                case R.id.button3:
-                    agregarACodigoDeDesbloqueo("3");
-                    break;
-                case R.id.button4:
-                    agregarACodigoDeDesbloqueo("4");
-                    break;
-                case R.id.button5:
-                    agregarACodigoDeDesbloqueo("5");
-                    break;
-                case R.id.button6:
-                    agregarACodigoDeDesbloqueo("6");
-                    break;
-                case R.id.button7:
-                    agregarACodigoDeDesbloqueo("7");
-                    break;
-                case R.id.button8:
-                    agregarACodigoDeDesbloqueo("8");
-                    break;
-                case R.id.button9:
-                    agregarACodigoDeDesbloqueo("9");
-                    break;
-                case R.id.button_ok:
-                    enviarAArduino();
-                    break;
-                case R.id.button_delete:
-                    eliminarCodigo();
-                    break;
-
-            }
-
-
-        }
-    };
-
-
+    private static final int CODIGO_DESBLOQUEO = 1234;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teclado);
 
-        codigoDesbloqueo = findViewById(R.id.codigo_ingresado);
+        codigoDesbloqueoTextView = findViewById(R.id.codigo_ingresado);
         setupButtons();
-
 
     }
 
 
+    private void agregarACodigoDeDesbloqueo(String s) {
+        if (codigoDesbloqueoTextView.getText().length() < 4) {
+            codigoDesbloqueoTextView.setText(String.format("%s%s", codigoDesbloqueoTextView.getText(), s));
+        }
+    }
+
+
+    private void eliminarCodigo() {
+        codigoDesbloqueoTextView.setText("");
+    }
+
+
+    private void enviarAArduino() {
+
+        int ingresado = Integer.valueOf(codigoDesbloqueoTextView.getText().toString());
+
+        if (esCodigoValido(ingresado)) {
+          codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_correcto);
+          //TODO: enviar a arduino.
+        }
+        else {
+            codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_error);
+        }
+    }
+
+
+    private boolean esCodigoValido(int ingresado) {
+        return ingresado == CODIGO_DESBLOQUEO;
+    }
 
 
     private void setupButtons() {
@@ -91,35 +73,64 @@ public class Teclado extends AppCompatActivity {
         buttonOK = findViewById(R.id.button_ok);
         buttonDel = findViewById(R.id.button_delete);
 
-        b0.setOnClickListener(clickListener);
-        b1.setOnClickListener(clickListener);
-        b2.setOnClickListener(clickListener);
-        b3.setOnClickListener(clickListener);
-        b4.setOnClickListener(clickListener);
-        b5.setOnClickListener(clickListener);
-        b6.setOnClickListener(clickListener);
-        b7.setOnClickListener(clickListener);
-        b8.setOnClickListener(clickListener);
-        b9.setOnClickListener(clickListener);
-        buttonOK.setOnClickListener(clickListener);
-        buttonDel.setOnClickListener(clickListener);
+        b0.setOnClickListener(this);
+        b1.setOnClickListener(this);
+        b2.setOnClickListener(this);
+        b3.setOnClickListener(this);
+        b4.setOnClickListener(this);
+        b5.setOnClickListener(this);
+        b6.setOnClickListener(this);
+        b7.setOnClickListener(this);
+        b8.setOnClickListener(this);
+        b9.setOnClickListener(this);
+        buttonOK.setOnClickListener(this);
+        buttonDel.setOnClickListener(this);
 
     }
 
 
+    @Override
+    public void onClick(View view) {
 
-    private void agregarACodigoDeDesbloqueo(String s) {
-        if (codigoDesbloqueo.getText().length() < 4) {
-            codigoDesbloqueo.setText(String.format("%s%s", codigoDesbloqueo.getText(), s));
+        int id = view.getId();
+        switch (id) {
+            case R.id.button0:
+                agregarACodigoDeDesbloqueo("0");
+                break;
+            case R.id.button1:
+                agregarACodigoDeDesbloqueo("1");
+                break;
+            case R.id.button2:
+                agregarACodigoDeDesbloqueo("2");
+                break;
+            case R.id.button3:
+                agregarACodigoDeDesbloqueo("3");
+                break;
+            case R.id.button4:
+                agregarACodigoDeDesbloqueo("4");
+                break;
+            case R.id.button5:
+                agregarACodigoDeDesbloqueo("5");
+                break;
+            case R.id.button6:
+                agregarACodigoDeDesbloqueo("6");
+                break;
+            case R.id.button7:
+                agregarACodigoDeDesbloqueo("7");
+                break;
+            case R.id.button8:
+                agregarACodigoDeDesbloqueo("8");
+                break;
+            case R.id.button9:
+                agregarACodigoDeDesbloqueo("9");
+                break;
+            case R.id.button_ok:
+                enviarAArduino();
+                break;
+            case R.id.button_delete:
+                eliminarCodigo();
+                break;
         }
-    }
-
-    private void eliminarCodigo() {
-        codigoDesbloqueo.setText("");
-    }
-
-
-    private void enviarAArduino() {
     }
 }
 
