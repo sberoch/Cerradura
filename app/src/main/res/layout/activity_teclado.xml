@@ -140,7 +140,6 @@
             android:layout_marginTop="86dp"
             android:background="@drawable/fondo_boton"
             android:paddingTop="8dp"
-            android:text="2347"
             android:textAlignment="center"
             android:textColor="@android:color/background_dark"
             android:textSize="36sp" />

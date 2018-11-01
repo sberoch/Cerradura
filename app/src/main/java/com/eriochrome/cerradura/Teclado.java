@@ -46,6 +46,8 @@ public class Teclado extends AppCompatActivity implements Button.OnClickListener
         if (esCodigoValido(ingresado)) {
           codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_correcto);
           //TODO: enviar a arduino.
+          BluetoothComunicacion btComunicacion = new BluetoothComunicacion(ingresado, this);
+          btComunicacion.setUp();
         }
         else {
             codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_error);
