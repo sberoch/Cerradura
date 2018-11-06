@@ -1,5 +1,6 @@
 package com.eriochrome.cerradura;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -41,17 +42,23 @@ public class Teclado extends AppCompatActivity implements Button.OnClickListener
 
     private void enviarAArduino() {
 
-        int ingresado = Integer.valueOf(codigoDesbloqueoTextView.getText().toString());
+        if (codigoDesbloqueoTextView.getText().toString().length() <= 0) {
 
-        if (esCodigoValido(ingresado)) {
-          codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_correcto);
-          //TODO: enviar a arduino.
-          BluetoothComunicacion btComunicacion = new BluetoothComunicacion(ingresado, this);
-          btComunicacion.setUp();
+        } else {
+
+            int ingresado = Integer.valueOf(codigoDesbloqueoTextView.getText().toString());
+
+            if (esCodigoValido(ingresado)) {
+                codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_correcto);
+                //TODO: enviar a arduino.
+                Intent i = new Intent(Teclado.this, ComunicacionBT.class);
+                startActivity(i);
+            }
+            else {
+                codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_error);
+            }
         }
-        else {
-            codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_error);
-        }
+
     }
 
 
