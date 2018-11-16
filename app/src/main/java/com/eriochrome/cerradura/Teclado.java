@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import static com.eriochrome.cerradura.R.drawable.fondo_correcto;
 
@@ -42,19 +43,23 @@ public class Teclado extends AppCompatActivity implements Button.OnClickListener
 
     private void enviarAArduino() {
 
-        if (codigoDesbloqueoTextView.getText().toString().length() <= 0) {
-
-        } else {
-
+        if (codigoDesbloqueoTextView.getText().toString().length() <= 0)
+        {
+            Toast.makeText(this, "Ingrese un codigo", Toast.LENGTH_SHORT).show();
+        }
+         else
+        {
             int ingresado = Integer.valueOf(codigoDesbloqueoTextView.getText().toString());
 
-            if (esCodigoValido(ingresado)) {
+            if (esCodigoValido(ingresado))
+            {
                 codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_correcto);
                 //TODO: enviar a arduino.
                 Intent i = new Intent(Teclado.this, ComunicacionBT.class);
                 startActivity(i);
             }
-            else {
+            else
+            {
                 codigoDesbloqueoTextView.setBackgroundResource(R.drawable.fondo_error);
             }
         }
