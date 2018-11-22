@@ -1,53 +1,26 @@
 package com.eriochrome.cerradura;
 
-import android.Manifest;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v4.app.ActivityCompat;
+
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.Set;
+import app.akexorcist.bluetotohspp.library.BluetoothSPP;
+import app.akexorcist.bluetotohspp.library.BluetoothState;
+import app.akexorcist.bluetotohspp.library.DeviceList;
 
 
 public class ComunicacionBT extends AppCompatActivity {
 
-    private int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
+    private BluetoothSPP bluetooth;
 
-    private BluetoothAdapter btAdapter;
-
-    private ArrayList<String> dispositivos;
-    private DevicesAdapter adapter;
-
-    private ListView listaDispositivosView;
-
-    private Button refrescar;
-    private Button buscar;
-
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                Toast.makeText(ComunicacionBT.this, "Se encontro un dispositivo.", Toast.LENGTH_SHORT).show();
-                BluetoothDevice dispositivo = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                String nombreDisp = dispositivo.getName();
-                String addressDisp = dispositivo.getAddress();
-                dispositivos.add(nombreDisp + "\n" + addressDisp);
-                adapter.notifyDataSetChanged();
-            }
-        }
-    };
+    private Button abrir;
+    private Button cerrar;
+    private Button condesc;
 
 
     @Override
@@ -55,74 +28,97 @@ public class ComunicacionBT extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comunicacion_bt);
 
-        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetooth = new BluetoothSPP(this);
 
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter);
+        condesc = findViewById(R.id.condesc);
+        abrir = findViewById(R.id.abrir);
+        cerrar = findViewById(R.id.cerrar);
 
-        listaDispositivosView = findViewById(R.id.listview);
-        dispositivos = new ArrayList<>();
-        adapter = new DevicesAdapter(dispositivos, this);
-        listaDispositivosView.setAdapter(adapter);
-
-        refrescar = findViewById(R.id.refresh);
-        buscar = findViewById(R.id.buscar);
-
-        refrescar.setOnClickListener(new View.OnClickListener() {
+        bluetooth.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
             @Override
-            public void onClick(View v) {
-                dispositivos.clear();
-                showPairedDevices();
+            public void onDeviceConnected(String name, String address) {
+                aviso("Conectado a " + name);
+            }
+
+            public void onDeviceDisconnected() {
+                aviso("Desconectado.");
+            }
+
+            public void onDeviceConnectionFailed() {
+                aviso("Imposible conectar.");
             }
         });
-        buscar.setOnClickListener(new View.OnClickListener() {
+
+        condesc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (bluetooth.getServiceState() == BluetoothState.STATE_CONNECTED) {
+                    bluetooth.disconnect();
+                } else {
+                    Intent intent = new Intent(getApplicationContext(), DeviceList.class);
+                    startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
+                }
+            }
+        });
+
+        abrir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (btAdapter.isDiscovering()) {
-                    Toast.makeText(ComunicacionBT.this ,"Ya estabas buscando dispositivos", Toast.LENGTH_SHORT).show();
-                    btAdapter.cancelDiscovery();
-                }
-                btAdapter.startDiscovery();
-                Toast.makeText(ComunicacionBT.this, "Buscando dispositivos..", Toast.LENGTH_SHORT).show();
+                bluetooth.send("0", true);
+                aviso("Abrir");
+            }
+        });
+
+        cerrar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bluetooth.send("1", true);
+                aviso("Cerrar");
             }
         });
     }
+
 
     @Override
     public void onStart() {
         super.onStart();
-
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
-
-        if (!btAdapter.isEnabled()) {
-            Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turnOn, 0);
-        }
-        showPairedDevices();
-    }
-
-
-    public void showPairedDevices() {
-        Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                dispositivos.add(device.getName() + "\n" + device.getAddress());
-            }
+        if (!bluetooth.isBluetoothEnabled()) {
+            bluetooth.enable();
         } else {
-            Toast.makeText(this, "No hay dispositivos vinculados", Toast.LENGTH_SHORT).show();
+            if (!bluetooth.isServiceAvailable()) {
+                bluetooth.setupService();
+                bluetooth.startService(BluetoothState.DEVICE_OTHER);
+            }
         }
-        adapter.notifyDataSetChanged();
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (btAdapter.isDiscovering()) {
-            btAdapter.cancelDiscovery();
+        bluetooth.stopService();
+    }
+
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
+            if (resultCode == Activity.RESULT_OK) {
+                bluetooth.connect(data);
+            }
+        } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
+            if (resultCode == Activity.RESULT_OK) {
+                bluetooth.setupService();
+            } else {
+                Toast.makeText(getApplicationContext()
+                        , "Bluetooth was not enabled."
+                        , Toast.LENGTH_SHORT).show();
+                finish();
+            }
         }
-        unregisterReceiver(mReceiver);
+    }
+
+
+    public void aviso(String string) {
+        Toast.makeText(this, string, Toast.LENGTH_SHORT).show();
     }
 }
