@@ -67,7 +67,7 @@ void loop(){
      checkIfSw1ButtonIsPressed();
      checkIfSw2ButtonIsPressed();
 
-     if (Serial.available > 0) {
+     if (Serial.available() > 0) {
       datoRecibidoBT = Serial.read();
       if (datoRecibidoBT == '0') {
         myservo.write(mot_max);
